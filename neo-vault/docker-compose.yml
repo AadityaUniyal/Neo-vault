@@ -68,6 +68,18 @@ services:
       KAFKA_BROKER: kafka:29092
       SERVICE_PORT: 3003
 
+  security-auditor:
+    build:
+      context: ./services/security-auditor
+      dockerfile: Dockerfile
+    ports:
+      - "3005:3005"
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_BROKER: kafka:29092
+      SERVICE_PORT: 3005
+
   frontend:
     build:
       context: ./frontend

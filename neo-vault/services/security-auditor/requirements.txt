@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+confluent-kafka
+pydantic
+scikit-learn
+numpy
+pandas
+sqlalchemy
+strawberry-graphql
+httpx
+python-dotenv

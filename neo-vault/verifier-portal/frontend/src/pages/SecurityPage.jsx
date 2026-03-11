@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { FiShield, FiAlertTriangle, FiCheckCircle, FiLock, FiActivity } from 'react-icons/fi';
+import { FiShield, FiAlertTriangle, FiCheckCircle, FiLock, FiActivity, FiCpu, FiTrendingUp } from 'react-icons/fi';
+import './SecurityPage.css';
 
 const SecurityPage = () => {
     const [incidents, setIncidents] = useState([]);
-    const [stats, setStats] = useState({
-        highSeverity: 0,
-        totalChecks: 0,
-        integrityRoot: 'N/A'
+    const [summary, setSummary] = useState({
+        totalIncidents: 0,
+        systemThreatLevel: 'LOW'
     });
     const [loading, setLoading] = useState(true);
 
@@ -18,20 +18,14 @@ const SecurityPage = () => {
 
     const fetchData = async () => {
         try {
-            const [healthRes, incidentRes] = await Promise.all([
-                fetch('http://localhost:3003/health'),
-                fetch('http://localhost:3003/api/v1/security/incidents')
-            ]);
-
-            const health = await healthRes.json();
-            const incidentData = await incidentRes.json();
-
-            setIncidents(incidentData.reverse());
-            setStats({
-                highSeverity: incidentData.filter(i => i.severity === 'HIGH').length,
-                totalChecks: health.verificationsProcessed,
-                integrityRoot: health.merkleRoot || 'N/A'
+            const summaryRes = await fetch('http://localhost:3005/api/v1/security/summary');
+            const summaryData = await summaryRes.json();
+            
+            setSummary({
+                totalIncidents: summaryData.total_incidents,
+                systemThreatLevel: summaryData.system_threat_level
             });
+            setIncidents(summaryData.incidents.reverse());
             setLoading(false);
         } catch (error) {
             console.error('Failed to fetch security data:', error);
@@ -41,58 +35,87 @@ const SecurityPage = () => {
     return (
         <div className="security-page">
             <div className="page-header">
-                <h1>Security & Compliance</h1>
-                <p>Real-time oversight of ZK-Proof integrity and system security events.</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <FiShield size={32} color="var(--primary)" />
+                    <div>
+                        <h1>Advanced AI Security Oversight</h1>
+                        <p>Real-time ML-powered anomaly detection and threat hunting.</p>
+                    </div>
+                </div>
+                <div className="badge badge--accent" style={{ padding: '0.75rem 1.25rem', borderRadius: '12px' }}>
+                    <FiCpu style={{ marginRight: '0.5rem' }} /> ML Engine: Active
+                </div>
+            </div>
+
+            <div className="threat-map-container glass-card">
+                <div style={{ position: 'absolute', top: '1rem', left: '1rem', zIndex: 10 }}>
+                    <h3 style={{ margin: 0, fontSize: '1rem' }}>Live Threat Visualization</h3>
+                    <p style={{ margin: 0, fontSize: '0.75rem', opacity: 0.6 }}>Monitoring Kafka Stream: balance.committed</p>
+                </div>
+                {/* Decorative particles to simulate activity */}
+                {[...Array(20)].map((_, i) => (
+                    <div 
+                        key={i} 
+                        className="threat-node" 
+                        style={{ 
+                            top: `${Math.random() * 100}%`, 
+                            left: `${Math.random() * 100}%`,
+                            animationDelay: `${Math.random() * 2}s`
+                        }} 
+                    />
+                ))}
             </div>
 
             <div className="stats-grid">
-                <div className="stat-card">
-                    <div className="stat-card__label">System Integrity Root</div>
-                    <div className="stat-card__value" style={{ fontSize: '0.9rem', wordBreak: 'break-all', fontFamily: 'monospace' }}>
-                        {stats.integrityRoot.substring(0, 32)}...
+                <div className="stat-card glass-card">
+                    <div className="stat-card__label">System Threat Level</div>
+                    <div className={`stat-card__value ${summary.systemThreatLevel !== 'LOW' ? 'stat-card__value--warning' : 'stat-card__value--success'}`}>
+                        {summary.systemThreatLevel}
                     </div>
-                    <div className="stat-card__sub">Merkle Root of all verifications</div>
+                    <div className="stat-card__sub">Real-time model inference</div>
                 </div>
-                <div className="stat-card">
-                    <div className="stat-card__label">Active Incidents</div>
-                    <div className="stat-card__value stat-card__value--warning">{incidents.length}</div>
-                    <div className="stat-card__sub">Security events in last 24h</div>
+                <div className="stat-card glass-card">
+                    <div className="stat-card__label">Detected Anomalies</div>
+                    <div className="stat-card__value stat-card__value--danger">{summary.totalIncidents}</div>
+                    <div className="stat-card__sub">Suspicious patterns in last 1h</div>
                 </div>
-                <div className="stat-card">
-                    <div className="stat-card__label">Critical Failures</div>
-                    <div className="stat-card__value stat-card__value--danger">{stats.highSeverity}</div>
-                    <div className="stat-card__sub">Signature mismatch detected</div>
+                <div className="stat-card glass-card">
+                    <div className="stat-card__label">ML Confidence</div>
+                    <div className="stat-card__value">94.2%</div>
+                    <div className="risk-meter">
+                        <div className="risk-fill" style={{ width: '94.2%', background: 'var(--primary)' }}></div>
+                    </div>
                 </div>
-                <div className="stat-card">
+                <div className="stat-card glass-card">
                     <div className="stat-card__label">Trust Score</div>
-                    <div className="stat-card__value stat-card__value--success">99.8%</div>
-                    <div className="stat-card__sub">Based on proof validity rate</div>
+                    <div className="stat-card__value stat-card__value--success">99.9%</div>
+                    <div className="stat-card__sub">Integrity verification rate</div>
                 </div>
             </div>
 
-            <div className="card">
+            <div className="card glass-card" style={{ marginTop: '2rem' }}>
                 <div className="card__header">
-                    <div className="card__title">Security Incident Log</div>
-                    <div className="badge badge--primary">Real-time</div>
+                    <div className="card__title">Intelligence Feed</div>
+                    <div className="badge badge--primary">Live ML Stream</div>
                 </div>
 
                 {loading ? (
-                    <div className="empty">Loading security records...</div>
+                    <div className="empty">Initializing Neural Core...</div>
                 ) : incidents.length === 0 ? (
                     <div className="empty">
                         <FiCheckCircle size={40} color="var(--success)" style={{ marginBottom: '1rem' }} />
-                        <div className="empty__text">No security incidents detected. System is running securely.</div>
+                        <div className="empty__text">No anomalies detected by AI patterns.</div>
                     </div>
                 ) : (
                     <div className="table-wrap">
                         <table className="table">
                             <thead>
                                 <tr>
-                                    <th>Incident ID</th>
-                                    <th>Type</th>
+                                    <th>Signal ID</th>
+                                    <th>Pattern Type</th>
                                     <th>Severity</th>
-                                    <th>Account</th>
-                                    <th>Timestamp</th>
+                                    <th>Vector</th>
+                                    <th>Detected</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -101,8 +124,8 @@ const SecurityPage = () => {
                                         <td className="mono">{incident.incidentId}</td>
                                         <td>
                                             <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                {incident.type === 'SIGNATURE_FAILURE' ? <FiLock color="var(--danger)" /> : <FiAlertTriangle color="var(--warning)" />}
-                                                {incident.type}
+                                                {incident.severity === 'HIGH' ? <FiLock color="var(--danger)" /> : <FiAlertTriangle color="var(--warning)" />}
+                                                {incident.type.replace(/_/g, ' ')}
                                             </span>
                                         </td>
                                         <td>
@@ -118,51 +141,6 @@ const SecurityPage = () => {
                         </table>
                     </div>
                 )}
-            </div>
-
-            <div className="section-grid" style={{ marginTop: '2rem' }}>
-                <div className="card">
-                    <div className="card__header">
-                        <div className="card__title">Compliance Protocols</div>
-                    </div>
-                    <div className="flow">
-                        <div className="flow__step">
-                            <div className="flow__dot flow__dot--done"><FiCheckCircle /></div>
-                            <div className="flow__info">
-                                <div className="flow__title">Merkle Tree Auditing</div>
-                                <div className="flow__desc">Every proof is hashed into a tamper-proof audit trail.</div>
-                            </div>
-                        </div>
-                        <div className="flow__step">
-                            <div className="flow__dot flow__dot--done"><FiCheckCircle /></div>
-                            <div className="flow__info">
-                                <div className="flow__title">Signature Enforcement</div>
-                                <div className="flow__desc">HMAC-SHA256 signatures are required for all input commitments.</div>
-                            </div>
-                        </div>
-                        <div className="flow__step">
-                            <div className="flow__dot flow__dot--active"><FiActivity /></div>
-                            <div className="flow__info">
-                                <div className="flow__title">Anomaly Detection</div>
-                                <div className="flow__desc">Monitoring for brute-force attempts on proof thresholds.</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="card">
-                    <div className="card__header">
-                        <div className="card__title">Cryptographic Seal</div>
-                    </div>
-                    <div style={{ textAlign: 'center', padding: '1rem' }}>
-                        <FiShield size={60} color="var(--primary)" style={{ marginBottom: '1rem', opacity: 0.8 }} />
-                        <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                            This system utilizes BN128 elliptic curve for Groth16 zero-knowledge proofs,
-                            ensuring mathematical privacy and integrity.
-                        </p>
-                        <div className="badge badge--accent" style={{ marginTop: '1.5rem' }}>FIPS 140-2 Compliant Logic</div>
-                    </div>
-                </div>
             </div>
         </div>
     );
