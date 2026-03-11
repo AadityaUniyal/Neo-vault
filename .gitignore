@@ -1,0 +1,27 @@
+# Node.js
+node_modules/
+dist/
+build/
+.npm
+npm-debug.log*
+
+# Project Subfolders
+neo-vault/node_modules/
+neo-vault/verifier-portal/frontend/node_modules/
+neo-vault/verifier-portal/frontend/dist/
+
+# Environment
+.env
+.env.local
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Other
+target/
+*.log

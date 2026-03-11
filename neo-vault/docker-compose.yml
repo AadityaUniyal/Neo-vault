@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  # --- Infrastructure ---
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    hostname: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    hostname: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+
+  # --- Application Services ---
+  bank-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: npm run start:bank
+    ports:
+      - "3001:3001"
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_BROKER: kafka:29092
+      SERVICE_PORT: 3001
+
+  vault-core:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: npm run start:vault
+    ports:
+      - "3002:3002"
+    depends_on:
+      - kafka
+      - bank-service
+    environment:
+      KAFKA_BROKER: kafka:29092
+      SERVICE_PORT: 3002
+
+  verifier-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: npm run start:verifier
+    ports:
+      - "3003:3003"
+    depends_on:
+      - kafka
+      - vault-core
+    environment:
+      KAFKA_BROKER: kafka:29092
+      SERVICE_PORT: 3003
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - verifier-service
