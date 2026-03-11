@@ -105,4 +105,4 @@ neo-vault/
 
 ---
 
-*Built for JPMC Selection Round — Demonstrating System Design, Cryptography, and Distributed Systems.*
+
